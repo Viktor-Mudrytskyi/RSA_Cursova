@@ -2,7 +2,8 @@ import 'package:cursova/core/extensions.dart';
 import 'package:cursova/core/failures/picker_failure/base_picker_failure.dart';
 import 'package:cursova/core/failures/picker_failure/file_is_empty.dart';
 import 'package:cursova/core/failures/picker_failure/file_not_picked.dart';
-import 'package:cursova/core/responses/app_response.dart';
+import 'package:cursova/core/failures/picker_failure/file_too_big.dart';
+import 'package:cursova/core/responses/response_wrapper.dart';
 import 'package:file_picker/file_picker.dart';
 
 class FilePickerManager {
@@ -32,6 +33,10 @@ class FilePickerManager {
 
     if (file.files.first.bytes.isNullOrEmpty) {
       return ResponseWrapper(failure: FileIsEmptyFailure());
+    }
+
+    if (file.files.first.bytes!.length > 1000000) {
+      return ResponseWrapper(failure: FileTooBigFailure());
     }
 
     return ResponseWrapper(data: file.files.first);

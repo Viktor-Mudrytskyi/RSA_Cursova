@@ -1,10 +1,11 @@
-import 'dart:io';
+// ignore_for_file: avoid_print
 
+import 'package:cursova/core/failures/file_failures/cant_access_storage.dart';
+import 'package:cursova/core/failures/file_failures/storage_perm_denied.dart';
 import 'package:cursova/core/managers/file_picker_manager.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:cursova/core/managers/file_saver_manager.dart';
+import 'package:cursova/core/managers/permission_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:fast_rsa/fast_rsa.dart';
-import 'package:path_provider/path_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String? _message;
+  String? _prime;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,50 +52,57 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  final fileResponse =
-                      await FilePickerManager().pickFileAsBYtes();
-                  fileResponse.fold(
-                    success: (data) async {
-                      print('Old path: ${data.path}');
-                      final KeyPair result = await RSA.generate(2048);
-                      // final file = File('D:/Work/3-1/Crypto/Cursova/test.txt');
-                      final t = await RSA.encryptOAEPBytes(
-                        data.bytes!,
-                        'test',
-                        Hash.SHA256,
-                        result.publicKey,
-                      );
-
-                      final Uri uriPath = Uri.parse(data.path!);
-                      final segments = uriPath.pathSegments.toList();
-                      segments.removeLast();
-                      print(await getDownloadsDirectory());
-
-                      final String newPath =
-                          '${segments.join('/')}/encrypt.txt';
-
-                      print('New path: $newPath');
-
-                      final fileEncrypted = File(newPath);
-                      fileEncrypted.writeAsBytesSync(t);
-                      print('Successful crypt');
-                      setState(() {
-                        _message =
-                            'New path: $newPath \nSuccessful crypt\n Old path: ${data.path}';
-                      });
-                    },
-                    failure: (failure) {
-                      print(failure);
-                      setState(() {
-                        _message = '$failure';
-                      });
-                    },
-                  );
+                  final storagAccessResponse =
+                      await PermissionManager().resolveStorageAccess();
+                  if (storagAccessResponse != null) {
+                    if (storagAccessResponse is CantAccessStorage) {
+                      await PermissionManager().requestStorageAccess();
+                      return;
+                    }
+                    if (storagAccessResponse is StoragePermanentlyDenied) {
+                      _message = storagAccessResponse.toString();
+                      setState(() {});
+                    }
+                  } else {
+                    final fileResponse =
+                        await FilePickerManager().pickFileAsBYtes();
+                    fileResponse.fold(
+                      success: (file) async {
+                        final res = await FileSaverManager()
+                            .writeToDownloadFolder(file);
+                        res.fold(
+                          success: (writtenFile) {
+                            _message = 'New path: ${writtenFile.path}';
+                            setState(() {});
+                          },
+                          failure: (failure) async {
+                            print(failure);
+                            setState(() {
+                              _message = '$failure';
+                            });
+                          },
+                        );
+                      },
+                      failure: (failure) {
+                        print(failure);
+                        setState(() {
+                          _message = '$failure';
+                        });
+                      },
+                    );
+                  }
                 },
                 child: const Text('Pick File'),
               ),
               const SizedBox(height: 30),
               if (_message != null) Text(_message!),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                  onPressed: () {},
+                  child: const Text(
+                    'Gen prime',
+                  )),
+              Text(_prime ?? ''),
             ],
           ),
         ],

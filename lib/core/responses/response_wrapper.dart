@@ -1,6 +1,5 @@
 class ResponseWrapper<Success, Failure> {
-  const ResponseWrapper({this.data, this.failure})
-      : assert(data != null || failure != null);
+  const ResponseWrapper({this.data, this.failure});
 
   final Success? data;
   final Failure? failure;
