@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.1.5 <4.0.0"
+  sdk: ">=3.1.4 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -37,8 +37,11 @@ dependencies:
   fast_rsa: ^3.6.1
   path_provider: ^2.1.1
   file_picker: ^6.1.1
-  permission_handler: ^11.1.0
+  permission_handler: ^10.3.0
   device_info_plus: ^9.1.1
+  pointycastle: ^3.7.3
+  ninja_prime: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -50,6 +50,9 @@ class FileSaverManager {
     }
 
     final KeyPair result = await RSA.generate(2048);
+    print(result.publicKey);
+    print(result.privateKey);
+
     final t = await RSA.encryptOAEPBytes(
       file.bytes!,
       'test',

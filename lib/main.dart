@@ -5,6 +5,7 @@ import 'package:cursova/core/failures/file_failures/storage_perm_denied.dart';
 import 'package:cursova/core/managers/file_picker_manager.dart';
 import 'package:cursova/core/managers/file_saver_manager.dart';
 import 'package:cursova/core/managers/permission_manager.dart';
+import 'package:cursova/core/rsa/managers/rsa_manager.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -42,6 +43,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String? _message;
   String? _prime;
+  bool _isLoad = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,11 +100,18 @@ class _MyHomePageState extends State<MyHomePage> {
               if (_message != null) Text(_message!),
               const SizedBox(height: 30),
               ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    _isLoad = true;
+                    setState(() {});
+                    await RSAmanager().generateKeys();
+                    _isLoad = false;
+                    setState(() {});
+                  },
                   child: const Text(
                     'Gen prime',
                   )),
               Text(_prime ?? ''),
+              if (_isLoad) const CircularProgressIndicator.adaptive()
             ],
           ),
         ],
