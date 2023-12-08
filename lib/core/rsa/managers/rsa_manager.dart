@@ -1,10 +1,9 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'dart:math';
 import 'package:cursova/core/rsa/euclid_response.dart';
 import 'package:cursova/core/rsa/rsa_key_pair.dart';
 import 'package:flutter/foundation.dart';
+import 'package:nanodart/nanodart.dart';
 import 'package:ninja_prime/ninja_prime.dart';
 
 class RSAmanager {
@@ -16,26 +15,69 @@ class RSAmanager {
   }
   RSAmanager._internal();
 
+  Future<Uint8List> cypherBytes(Uint8List bytes, RSAPublicKey keys) async {
+    final encryptedBytes = await compute(
+      (message) async {
+        String bytesString = '';
+        for (var e in bytes) {
+          bytesString += e.toString();
+        }
+
+        final bigIntBytes = BigInt.parse(bytesString);
+        final encryptedBigIntBytes = bigIntBytes.modPow(keys.a, keys.n);
+        final encryptedBytes = NanoHelpers.bigIntToBytes(encryptedBigIntBytes);
+
+        return encryptedBytes;
+      },
+      'Encryption',
+    );
+    return encryptedBytes;
+  }
+
+  Future<Uint8List> decipherBytes(Uint8List bytes, RSAPrivateKey keys) async {
+    final decryptedBytes = await compute(
+      (message) {
+        String bytesString = '';
+        for (var e in bytes) {
+          bytesString += e.toString();
+        }
+
+        final bigIntBytes = BigInt.parse(bytesString);
+        final decrypteddBigIntBytes = bigIntBytes.modPow(keys.b, keys.n);
+        final decryptedBytes = NanoHelpers.bigIntToBytes(decrypteddBigIntBytes);
+        return decryptedBytes;
+      },
+      'Decryption',
+    );
+    return decryptedBytes;
+  }
+
   Future<RSAKeyPair> generateKeys() async {
     final keys = await compute<String, RSAKeyPair>(
       (message) {
-        final p = randomPrimeBigInt(2048);
-        final q = randomPrimeBigInt(2048);
-        print('P = $p');
-        print('Q = $q');
+        final p = randomPrimeBigInt(1024);
+        // final p = BigInt.from(11);
+        final q = randomPrimeBigInt(1024);
+        // final q = BigInt.from(5);
+        debugPrint('P = $p');
+        debugPrint('Q = $q');
         final n = p * q;
-        print('n = $n');
+        debugPrint('n = $n');
 
         final phi = _calcPhiSync(p, q);
-        print('Phi: $phi');
+        debugPrint('Phi: $phi');
 
         final a = _choosePublicGCDsync(phi);
-        print('A = $a');
+        // final a = BigInt.from(7);
+        debugPrint('A = $a');
 
-        final b = _choosePrivateGCDsync(phi);
-        print('B = $b');
+        final b = _choosePrivateGCDsync(phi, a);
+        debugPrint('B = $b');
 
-        return RSAKeyPair(n, p, q);
+        return RSAKeyPair(
+          privateKey: RSAPrivateKey(b: b, p: p, q: q, n: n),
+          publicKey: RSAPublicKey(a: a, n: n),
+        );
       },
       'KeyGeneration',
     );
@@ -47,21 +89,17 @@ class RSAmanager {
   }
 
   BigInt _choosePublicGCDsync(BigInt phi) {
-    bool hasMatch = false;
-    final rand = Random();
-    while (!hasMatch) {
-      final randBigInt = randomBigInt(rand.nextInt(phi.bitLength - 2) + 1);
-      if (randBigInt.gcd(phi) == BigInt.one) {
-        hasMatch = true;
+    while (true) {
+      final randBigInt = randomBigInt(2048);
+      if (randBigInt.gcd(phi) == BigInt.one && randBigInt < phi) {
         return randBigInt;
       }
     }
-    throw Exception('No nuber');
   }
 
   BigInt _choosePrivateGCDsync(BigInt phi, BigInt a) {
     final euclid = _extendedEuclidean(a, phi);
-    throw Exception('No nuber');
+    return phi + euclid.x;
   }
 
   ExtendedEuclideanResult _extendedEuclidean(BigInt a, BigInt b) {

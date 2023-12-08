@@ -1,12 +1,9 @@
-// ignore_for_file: avoid_print
-
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cursova/core/failures/file_failures/base_file_failure.dart';
 
 import 'package:cursova/core/responses/response_wrapper.dart';
-import 'package:fast_rsa/fast_rsa.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 class FileSaverManager {
@@ -34,9 +31,11 @@ class FileSaverManager {
   }
 
   Future<ResponseWrapper<File, BaseFileFailure>> writeToDownloadFolder(
-      PlatformFile file) async {
+    Uint8List bytes,
+    String fileName,
+    String fileExtension,
+  ) async {
     BaseFileFailure? failure;
-    File? writtenFile;
     final downloadPathResponse =
         await FileSaverManager().getDownloadFolderPath();
     String? path;
@@ -49,22 +48,12 @@ class FileSaverManager {
       return ResponseWrapper(failure: failure);
     }
 
-    final KeyPair result = await RSA.generate(2048);
-    print(result.publicKey);
-    print(result.privateKey);
-
-    final t = await RSA.encryptOAEPBytes(
-      file.bytes!,
-      'test',
-      Hash.SHA256,
-      result.publicKey,
-    );
-    final String newPath = '$path/${file.name}_crypted.${file.extension}';
+    final String newPath = '$path/$fileName.$fileExtension';
     print('New path: $newPath');
-    final fileEncrypted = File(newPath);
-    await fileEncrypted.writeAsBytes(t);
-    writtenFile = fileEncrypted;
-    print('Successful crypt');
-    return ResponseWrapper(data: writtenFile);
+
+    final newFile = File(newPath);
+    await newFile.writeAsBytes(bytes);
+
+    return ResponseWrapper(data: newFile);
   }
 }

@@ -41,6 +41,7 @@ dependencies:
   device_info_plus: ^9.1.1
   pointycastle: ^3.7.3
   ninja_prime: ^2.0.0
+  nanodart: ^2.0.0
 
 dev_dependencies:
   flutter_test:
