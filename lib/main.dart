@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print, use_build_context_synchronously
 
+import 'dart:io';
+
 import 'package:cursova/core/failures/base_failure.dart';
 import 'package:cursova/core/managers/file_picker_manager.dart';
 import 'package:cursova/core/managers/file_saver_manager.dart';
@@ -45,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   RSAKeyPair? _keyPair;
   //Data
   PlatformFile? _pickedFile;
+  File? _encryptedFile;
 
   //Loading indicators
   bool _isBeingCyphered = false;
@@ -125,6 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           setState(() {});
                                           final keys =
                                               await RSAmanager().generateKeys();
+
                                           final cypheredBytes =
                                               await RSAmanager().cypherBytes(
                                             _pickedFile!.bytes!,
@@ -140,6 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           response.fold(
                                             success: (file) {
                                               _encryptedPath = file.path;
+                                              _encryptedFile = file;
                                               setState(() {});
                                             },
                                             failure: (failure) {
@@ -176,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           setState(() {});
 
                                           final cypheredBytes =
-                                              _pickedFile!.bytes!;
+                                              _encryptedFile!.readAsBytesSync();
 
                                           final decypheredBytes =
                                               await RSAmanager().decipherBytes(

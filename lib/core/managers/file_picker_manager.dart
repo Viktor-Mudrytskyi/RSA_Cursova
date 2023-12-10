@@ -23,6 +23,7 @@ class FilePickerManager {
       allowMultiple: false,
       type: FileType.any,
       withData: true,
+      allowCompression: false,
     );
     if (file == null) {
       return ResponseWrapper(failure: FileNotPickedFailure());
