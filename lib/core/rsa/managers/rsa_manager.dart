@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
-import 'dart:math';
 import 'package:cursova/core/rsa/euclid_response.dart';
 import 'package:cursova/core/rsa/rsa_key_pair.dart';
 import 'package:flutter/foundation.dart';
@@ -52,9 +50,6 @@ class RSAmanager {
         if (!(i * 256 + j >= bytes.length)) {
           tempBigInt += BigInt.from(bytes[i * 256 + j]);
         }
-      }
-      if (tempBigInt.bitLength % 8 != 0) {
-        tempBigInt = tempBigInt << (8 - tempBigInt.bitLength % 8);
       }
 
       bigIntegerList.add(tempBigInt);
