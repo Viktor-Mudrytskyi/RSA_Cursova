@@ -18,7 +18,7 @@ class FilePickerManager {
   FilePickerManager._internal(FilePicker filePicker) : _filePicker = filePicker;
 
   Future<ResponseWrapper<PlatformFile, BaseFilePickerFailure>>
-      pickFileAsBYtes() async {
+      pickPlatformFile() async {
     final file = await _filePicker.pickFiles(
       allowMultiple: false,
       type: FileType.any,

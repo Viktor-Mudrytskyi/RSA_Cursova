@@ -1,9 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:cursova/core/failures/file_failures/base_file_failure.dart';
-
 import 'package:cursova/core/responses/response_wrapper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 class FileSaverManager {
@@ -49,7 +47,7 @@ class FileSaverManager {
     }
 
     final String newPath = '$path/$fileName.$fileExtension';
-    print('New path: $newPath');
+    debugPrint('New path: $newPath');
 
     final newFile = File(newPath);
     await newFile.writeAsBytes(bytes);

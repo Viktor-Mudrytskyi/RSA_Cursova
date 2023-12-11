@@ -16,6 +16,11 @@ class RSAPublicKey {
     required this.a,
     required this.n,
   });
+
+  @override
+  String toString() {
+    return '(A = $a, \nN = $n)';
+  }
 }
 
 class RSAPrivateKey {
@@ -30,4 +35,9 @@ class RSAPrivateKey {
     required this.p,
     required this.n,
   });
+
+  @override
+  String toString() {
+    return '(B = $b, N = $n, P = $p, Q = $q)';
+  }
 }
