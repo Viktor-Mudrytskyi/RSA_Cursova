@@ -46,8 +46,8 @@ class RSAmanager {
       var tempBigInt = BigInt.zero;
 
       for (var j = 0; j < 256; j++) {
-        tempBigInt = tempBigInt << 8;
-        if (!(i * 256 + j >= bytes.length)) {
+        if ((i * 256 + j) < bytes.length) {
+          tempBigInt = tempBigInt << 8;
           tempBigInt += BigInt.from(bytes[i * 256 + j]);
         }
       }

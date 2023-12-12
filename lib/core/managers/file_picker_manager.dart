@@ -36,7 +36,7 @@ class FilePickerManager {
       return ResponseWrapper(failure: FileIsEmptyFailure());
     }
 
-    if (file.files.first.bytes!.length > 1000000) {
+    if (file.files.first.bytes!.length > 1000000 * 100) {
       return ResponseWrapper(failure: FileTooBigFailure());
     }
 
