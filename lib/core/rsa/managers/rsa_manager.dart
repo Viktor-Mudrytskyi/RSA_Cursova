@@ -52,8 +52,30 @@ class RSAmanager {
 
       for (var j = 0; j < byteChunk; j++) {
         if ((i * byteChunk + j) < bytes.length) {
-          tempBigInt = tempBigInt << 8;
           tempBigInt += BigInt.from(bytes[i * byteChunk + j]);
+        }
+        tempBigInt = tempBigInt << 8;
+      }
+
+      bigIntegerList.add(tempBigInt);
+    }
+    return bigIntegerList;
+  }
+
+  List<BigInt> readOriginalFile(Uint8List bytes) {
+    var listLength = (bytes.length / byteChunk).ceil();
+
+    final bigIntegerList = <BigInt>[];
+
+    for (var i = listLength - 1; i >= 0; i--) {
+      var tempBigInt = BigInt.zero;
+
+      for (var j = byteChunk - 1; j >= 0; j--) {
+        final index = i * byteChunk + j;
+        tempBigInt = tempBigInt << 8;
+
+        if (index >= 0 && index < bytes.length) {
+          tempBigInt |= BigInt.from(bytes[index]);
         }
       }
 

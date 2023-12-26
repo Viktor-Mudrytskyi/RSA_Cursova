@@ -16,65 +16,67 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nanodart/nanodart.dart';
 
 void main() {
-  test('Counter increments smoke test', () async {
+  test('Main', () async {
     WidgetsFlutterBinding.ensureInitialized();
+    final filePath =
+        r"C:\Users\mudri\Documents\Безымянный11.png".replaceAll(r'\', '/');
+    final segments = filePath.split('/').last.split('.');
+    final name = '${segments.first}_encrypted_decrypted.${segments.last}';
 
-    final initialBytes = File(
-            r"C:\Users\mudri\Documents\GreeceRomePolitics.pptx"
-                .replaceAll(r'\', '/'))
-        .readAsBytesSync();
+    final initialBytes = File(filePath).readAsBytesSync();
     final keys = await RSAmanager().generateKeys();
     final public = keys.publicKey;
     final private = keys.privateKey;
-    final bigIntList = RSAmanager().bytesToBigIntList(initialBytes);
+    final bigIntList = RSAmanager().readOriginalFile(initialBytes);
     final List<BigInt> encryptedBigIntList = [];
     final List<BigInt> decryptedBigIntList = [];
     final List<int> encryptedBytesList = [];
+    List<int> decryptedBytesList = [];
 
     for (var i = 0; i < bigIntList.length; i++) {
       final initBigInt = bigIntList[i];
-
       expect(initBigInt < private.n, true);
-
       final encryptedBigInt = initBigInt.modPow(public.a, public.n);
       final decryptedBigInt = encryptedBigInt.modPow(private.b, private.n);
-      // print('Initial Bytes Chunk: ${NanoHelpers.bigIntToBytes(initBigInt)}\n');
-      print(
-          'Encrypted Chunk: ${NanoHelpers.bigIntToBytes(encryptedBigInt)}\n\n');
-      // print('Decrypted Bytes: ${NanoHelpers.bigIntToBytes(decryptedBigInt)}\n');
-
       expect(initBigInt == decryptedBigInt, true);
-
       encryptedBigIntList.add(encryptedBigInt);
       decryptedBigIntList.add(decryptedBigInt);
     }
-    final decryptedBytes = <int>[];
+
     for (var i = 0; i < decryptedBigIntList.length; i++) {
-      final b = NanoHelpers.bigIntToBytes(decryptedBigIntList[i]);
-      decryptedBytes.addAll(b);
+      final current = NanoHelpers.bigIntToBytes(decryptedBigIntList[i]);
+      for (var i = 0; i < RSAmanager.byteChunk - current.length; i++) {
+        decryptedBytesList.add(0);
+      }
+      decryptedBytesList.addAll(current);
     }
-    File("C:/Users/mudri/Documents/hampster_decrypted.jpg")
-        .writeAsBytesSync(decryptedBytes);
+    decryptedBytesList = decryptedBytesList.reversed.toList();
 
-    // for (var i = 0; i < encryptedBigIntList.length; i++) {
-    //   final chunk = NanoHelpers.bigIntToBytes(encryptedBigIntList[i]);
-    //   final buffer = <int>[];
-    //   buffer.addAll(chunk);
-    //   for (var i = 0; i < RSAmanager.byteChunk - chunk.length; i++) {
-    //     buffer.add(0);
-    //   }
+    for (var i = 0; i < initialBytes.length; i++) {
+      expect(decryptedBytesList[i] == initialBytes[i], true);
+    }
+    // expect(listEquals(initialBytes, decryptedBytesList), true);
 
-    //   encryptedBytesList.addAll(buffer);
-    // }
-
-    // final newEncryptedBigIntList =
-    //     RSAmanager().bytesToBigIntList(Uint8List.fromList(encryptedBytesList));
-    // for (var i = 0; i < newEncryptedBigIntList.length; i++) {
-    //   final initBigInt = bigIntList[i];
-    //   final decryptedBigInt =
-    //       newEncryptedBigIntList[i].modPow(private.b, private.n);
-
-    //   expect(initBigInt == decryptedBigInt, true);
-    // }
+    File("C:/Users/mudri/Documents/$name").writeAsBytesSync(decryptedBytesList);
   });
+
+  // test('File reading', () async {
+  //   final filePath =
+  //       r"C:\Users\mudri\Documents\i_am_clown.txt".replaceAll(r'\', '/');
+  //   final initialBytes = [0, 0, 0, 0, 0, 0, 0, 1];
+  //   final bigIntList =
+  //       RSAmanager().readOriginalFile(Uint8List.fromList(initialBytes));
+  //   // final initialBytes = File(filePath).readAsBytesSync();
+  //   // final bigIntList = RSAmanager().readOriginalFile(initialBytes);
+  //   var bytes = <int>[];
+  //   for (var i = 0; i < bigIntList.length; i++) {
+  //     var b = NanoHelpers.bigIntToBytes(bigIntList[i]).map((e) => e).toList();
+
+  //     for (var i = 0; i < RSAmanager.byteChunk - b.length; i++) {
+  //       b.add(0);
+  //     }
+  //     bytes.addAll(b);
+  //   }
+  //   // expect(listEquals(bytes, initialBytes), true);
+  // });
 }
