@@ -5,26 +5,76 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:cursova/main.dart';
+import 'package:cursova/core/managers/file_saver_manager.dart';
+import 'package:cursova/core/rsa/managers/rsa_manager.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nanodart/nanodart.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Counter increments smoke test', () async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final initialBytes = File(
+            r"C:\Users\mudri\Documents\GreeceRomePolitics.pptx"
+                .replaceAll(r'\', '/'))
+        .readAsBytesSync();
+    final keys = await RSAmanager().generateKeys();
+    final public = keys.publicKey;
+    final private = keys.privateKey;
+    final bigIntList = RSAmanager().bytesToBigIntList(initialBytes);
+    final List<BigInt> encryptedBigIntList = [];
+    final List<BigInt> decryptedBigIntList = [];
+    final List<int> encryptedBytesList = [];
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    for (var i = 0; i < bigIntList.length; i++) {
+      final initBigInt = bigIntList[i];
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      expect(initBigInt < private.n, true);
+
+      final encryptedBigInt = initBigInt.modPow(public.a, public.n);
+      final decryptedBigInt = encryptedBigInt.modPow(private.b, private.n);
+      // print('Initial Bytes Chunk: ${NanoHelpers.bigIntToBytes(initBigInt)}\n');
+      print(
+          'Encrypted Chunk: ${NanoHelpers.bigIntToBytes(encryptedBigInt)}\n\n');
+      // print('Decrypted Bytes: ${NanoHelpers.bigIntToBytes(decryptedBigInt)}\n');
+
+      expect(initBigInt == decryptedBigInt, true);
+
+      encryptedBigIntList.add(encryptedBigInt);
+      decryptedBigIntList.add(decryptedBigInt);
+    }
+    final decryptedBytes = <int>[];
+    for (var i = 0; i < decryptedBigIntList.length; i++) {
+      final b = NanoHelpers.bigIntToBytes(decryptedBigIntList[i]);
+      decryptedBytes.addAll(b);
+    }
+    File("C:/Users/mudri/Documents/hampster_decrypted.jpg")
+        .writeAsBytesSync(decryptedBytes);
+
+    // for (var i = 0; i < encryptedBigIntList.length; i++) {
+    //   final chunk = NanoHelpers.bigIntToBytes(encryptedBigIntList[i]);
+    //   final buffer = <int>[];
+    //   buffer.addAll(chunk);
+    //   for (var i = 0; i < RSAmanager.byteChunk - chunk.length; i++) {
+    //     buffer.add(0);
+    //   }
+
+    //   encryptedBytesList.addAll(buffer);
+    // }
+
+    // final newEncryptedBigIntList =
+    //     RSAmanager().bytesToBigIntList(Uint8List.fromList(encryptedBytesList));
+    // for (var i = 0; i < newEncryptedBigIntList.length; i++) {
+    //   final initBigInt = bigIntList[i];
+    //   final decryptedBigInt =
+    //       newEncryptedBigIntList[i].modPow(private.b, private.n);
+
+    //   expect(initBigInt == decryptedBigInt, true);
+    // }
   });
 }

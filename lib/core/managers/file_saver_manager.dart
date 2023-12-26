@@ -46,7 +46,7 @@ class FileSaverManager {
       return ResponseWrapper(failure: failure);
     }
 
-    final String newPath = '$path/$fileName.$fileExtension';
+    final String newPath = '$path\\$fileName.$fileExtension';
     debugPrint('New path: $newPath');
 
     final newFile = File(newPath);
